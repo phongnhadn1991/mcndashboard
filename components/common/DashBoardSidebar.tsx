@@ -13,16 +13,16 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { CollapsibleContent } from "@radix-ui/react-collapsible";
-import { Collapsible, CollapsibleTrigger } from "./ui/collapsible";
+import { Collapsible, CollapsibleTrigger } from "../ui/collapsible";
 
 // Menu items.
 const items = [
     {
         title: "Dashboard",
-        url: "/dashboard",
+        url: "/",
         icon: LayoutDashboard,
     },
     {
@@ -124,7 +124,7 @@ const DashBoardSidebar = () => {
                                 <SidebarMenu>
                                     <SidebarMenuItem>
                                         <SidebarMenuButton asChild>
-                                            <Link href={'/'}>
+                                            <Link href={'/posts'}>
                                                 <Newspaper />
                                                 See All Posts
                                             </Link>

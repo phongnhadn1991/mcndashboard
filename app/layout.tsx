@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { ThemeProvider } from "@/components/ThemeProvider";
-import DashBoardSidebar from "@/components/DashBoardSidebar";
+import DashBoardSidebar from "@/components/common/DashBoardSidebar";
 import DashNavBar from "@/components/common/DashNavbar"
 
 const geistSans = Geist({
@@ -37,7 +37,6 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-
           <SidebarProvider>
             <aside>
               <DashBoardSidebar />
