@@ -12,8 +12,25 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -64,6 +81,13 @@ export type Posts = {
     date?: string,
     categories?: Category[]
 }
+
+// Định nghĩa custom filter function
+const customCategoryFilter: FilterFn<Posts> = (row, columnId, filterValue) => {
+  const categories = row.getValue(columnId) as Category[] | undefined;
+  if (!categories) return false;
+  return categories.some(cat => cat.name === filterValue);
+};
 
 export const columns: ColumnDef<Posts>[] = [
   {
@@ -140,6 +164,11 @@ export const columns: ColumnDef<Posts>[] = [
         </div>
       ) : null;
     },
+    filterFn: (row, id, value) => {
+      const categories = row.getValue(id) as Category[] | undefined;
+      if (!categories) return false;
+      return categories.some(cat => cat.name === value);
+    },
   },
   {
     accessorKey: "date",
@@ -195,15 +224,47 @@ export function DataTablePosts() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [dataPosts, setDataPosts] = React.useState<Posts[]>([]);
+  const [date, setDate] = React.useState<Date>()
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("")
+
+  // Lấy danh sách categories duy nhất từ tất cả bài post
+  const uniqueCategories = React.useMemo(() => {
+    const categories = new Set<string>();
+    dataPosts.forEach(post => {
+      post.categories?.forEach(category => {
+        categories.add(category.name);
+      });
+    });
+    return Array.from(categories);
+  }, [dataPosts]);
 
   React.useEffect(() => {
     const fetchData = async () => {
-        const fetchGetPosts = await fetch('http://localhost/wp-json/api/v1/posts?posts_per_page=999999')
-        const getDataPosts: Posts[] = await fetchGetPosts.json()
-        setDataPosts(getDataPosts)
+      const fetchGetPosts = await fetch('http://localhost/wp-json/api/v1/posts?posts_per_page=999999')
+      const getDataPosts: Posts[] = await fetchGetPosts.json()
+      setDataPosts(getDataPosts)
     }
     fetchData()
   }, []);
+
+  // Xử lý lọc theo category
+  React.useEffect(() => {
+    if (selectedCategory) {
+      table.getColumn("categories")?.setFilterValue(selectedCategory);
+    } else {
+      table.getColumn("categories")?.setFilterValue("");
+    }
+  }, [selectedCategory]);
+
+  // Xử lý lọc theo date
+  React.useEffect(() => {
+    if (date) {
+      const formattedDate = format(date, "dd/MM/yyyy");
+      table.getColumn("date")?.setFilterValue(formattedDate);
+    } else {
+      table.getColumn("date")?.setFilterValue("");
+    }
+  }, [date]);
 
   const table = useReactTable({
     data: dataPosts,
@@ -226,7 +287,7 @@ export function DataTablePosts() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-4">
         <Input
           placeholder="Filter title..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
@@ -235,6 +296,68 @@ export function DataTablePosts() {
           }
           className="max-w-sm"
         />
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[200px] justify-start text-left font-normal",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "dd/MM/yyyy") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              className="w-[200px] justify-between"
+            >
+              {selectedCategory ? selectedCategory : "Select category..."}
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search category..." />
+              <CommandEmpty>No category found.</CommandEmpty>
+              <CommandGroup>
+                <CommandItem
+                  onSelect={() => {
+                    setSelectedCategory("");
+                  }}
+                >
+                  All Categories
+                </CommandItem>
+                {uniqueCategories.map((category) => (
+                  <CommandItem
+                    key={category}
+                    onSelect={() => {
+                      setSelectedCategory(category);
+                    }}
+                  >
+                    {category}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
