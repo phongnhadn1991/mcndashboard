@@ -68,19 +68,8 @@ import {
     SelectValue,
   } from "@/components/ui/select"
 import { Badge } from "../ui/badge"
-export type Category = {
-    id: number;
-    name: string;
-    slug: string;
-}
-export type Posts = {
-    id: string
-    title: string
-    slug?: string
-    thumbnail?: {thumbnail: string, medium: string, large: string, full: string}
-    date?: string,
-    categories?: Category[]
-}
+import { getAllPosts } from "@/lib/api/posts"
+import { Posts, Category } from "@/types/posts"
 
 // Định nghĩa custom filter function
 const customCategoryFilter: FilterFn<Posts> = (row, columnId, filterValue) => {
@@ -226,9 +215,11 @@ export function DataTablePosts() {
   const [dataPosts, setDataPosts] = React.useState<Posts[]>([]);
   const [date, setDate] = React.useState<Date>()
   const [selectedCategory, setSelectedCategory] = React.useState<string>("")
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // Lấy danh sách categories duy nhất từ tất cả bài post
   const uniqueCategories = React.useMemo(() => {
+    if (!dataPosts || dataPosts.length === 0) return [];
     const categories = new Set<string>();
     dataPosts.forEach(post => {
       post.categories?.forEach(category => {
@@ -240,11 +231,18 @@ export function DataTablePosts() {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const fetchGetPosts = await fetch('http://localhost/wp-json/api/v1/posts?posts_per_page=999999')
-      const getDataPosts: Posts[] = await fetchGetPosts.json()
-      setDataPosts(getDataPosts)
-    }
-    fetchData()
+      try {
+        setIsLoading(true);
+        const posts = await getAllPosts();
+        setDataPosts(posts || []); // Đảm bảo luôn là mảng
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        setDataPosts([]); // Set mảng rỗng nếu có lỗi
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   // Xử lý lọc theo category
@@ -267,7 +265,7 @@ export function DataTablePosts() {
   }, [date]);
 
   const table = useReactTable({
-    data: dataPosts,
+    data: dataPosts || [], // Đảm bảo luôn là mảng
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -285,9 +283,24 @@ export function DataTablePosts() {
     },
   })
 
+  const handleClearFilters = () => {
+    table.resetColumnFilters();
+    setSelectedCategory('')
+    setDate(undefined)
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4 gap-4">
+        <Button variant='destructive' onClick={handleClearFilters}>Clear Filter</Button>
         <Input
           placeholder="Filter title..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
