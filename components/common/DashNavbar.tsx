@@ -132,7 +132,7 @@ const UserDropdown = () => (
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant='destructive'>
+                <DropdownMenuItem className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900">
                     <LogOut />
                     Log out
                 </DropdownMenuItem>
