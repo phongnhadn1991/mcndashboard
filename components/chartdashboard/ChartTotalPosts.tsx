@@ -9,7 +9,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { type ChartConfig } from "@/components/ui/chart"
 import {
     ChartConfig,
     ChartContainer,
@@ -32,10 +31,9 @@ const chartData = [
     { month: "November", posts: 198 },
     { month: "December", posts: 289 },
 ];
-const chartConfig = {
+const chartConfig: ChartConfig = {
     posts: {
         label: "Posts",
-        color: "#2563eb",
         theme: {
             light: "#269aff",
             dark: "hsl(var(--chart-2))",
@@ -87,5 +85,5 @@ const ChartTotalPosts = () => {
         </Card >
     );
 }
-
 export default ChartTotalPosts;
+
