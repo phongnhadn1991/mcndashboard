@@ -12,7 +12,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  FilterFn,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
 import { format } from "date-fns"
@@ -70,13 +69,7 @@ import {
 import { Badge } from "../ui/badge"
 import { getAllPosts } from "@/lib/api/posts"
 import { Posts, Category } from "@/types/posts"
-
-// Định nghĩa custom filter function
-const customCategoryFilter: FilterFn<Posts> = (row, columnId, filterValue) => {
-  const categories = row.getValue(columnId) as Category[] | undefined;
-  if (!categories) return false;
-  return categories.some(cat => cat.name === filterValue);
-};
+import Image from "next/image"
 
 export const columns: ColumnDef<Posts>[] = [
   {
@@ -113,7 +106,7 @@ export const columns: ColumnDef<Posts>[] = [
       const thumbnail = row.getValue("thumbnail") as { large: string } | undefined;
       return thumbnail ? (
         <div>
-          <img className="h-20 w-30 object-cover rounded-lg" src={thumbnail.large} />
+          <Image className="h-20 w-30 object-cover rounded-lg" src={thumbnail.large} alt="Images" width="120" height="80"/>
         </div>
       ) : null;
     },
@@ -220,6 +213,7 @@ export function DataTablePosts() {
   // Lấy danh sách categories duy nhất từ tất cả bài post
   const uniqueCategories = React.useMemo(() => {
     if (!dataPosts || dataPosts.length === 0) return [];
+    
     const categories = new Set<string>();
     dataPosts.forEach(post => {
       post.categories?.forEach(category => {
@@ -245,25 +239,6 @@ export function DataTablePosts() {
     fetchData();
   }, []);
 
-  // Xử lý lọc theo category
-  React.useEffect(() => {
-    if (selectedCategory) {
-      table.getColumn("categories")?.setFilterValue(selectedCategory);
-    } else {
-      table.getColumn("categories")?.setFilterValue("");
-    }
-  }, [selectedCategory]);
-
-  // Xử lý lọc theo date
-  React.useEffect(() => {
-    if (date) {
-      const formattedDate = format(date, "dd/MM/yyyy");
-      table.getColumn("date")?.setFilterValue(formattedDate);
-    } else {
-      table.getColumn("date")?.setFilterValue("");
-    }
-  }, [date]);
-
   const table = useReactTable({
     data: dataPosts || [], // Đảm bảo luôn là mảng
     columns,
@@ -283,10 +258,31 @@ export function DataTablePosts() {
     },
   })
 
+  // Xử lý lọc theo category
+  React.useEffect(() => {
+    const column = table.getColumn("categories");
+    if (selectedCategory) {
+      column?.setFilterValue(selectedCategory);
+    } else {
+      column?.setFilterValue("");
+    }
+  }, [selectedCategory, table]);
+
+  // Xử lý lọc theo date
+  React.useEffect(() => {
+    const column = table.getColumn("date");
+    if (date) {
+      const formattedDate = format(date, "dd/MM/yyyy");
+      column?.setFilterValue(formattedDate);
+    } else {
+      column?.setFilterValue("");
+    }
+  }, [date, table]);
+
   const handleClearFilters = () => {
     table.resetColumnFilters();
-    setSelectedCategory('')
-    setDate(undefined)
+    setSelectedCategory('');
+    setDate(undefined);
   };
 
   if (isLoading) {
@@ -320,7 +316,7 @@ export function DataTablePosts() {
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "dd/MM/yyyy") : <span>Pick a date</span>}
+              {date ? format(date, "PPP") : <span>Pick a date</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
