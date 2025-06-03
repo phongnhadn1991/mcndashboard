@@ -16,6 +16,10 @@ const nextConfig = {
         {
             protocol: 'http',
             hostname: 'localhost',
+        },
+        {
+            protocol: 'https',
+            hostname: 'api-dashboard.ngoan.site',
         }
     ],
     domains: ['localhost'],
