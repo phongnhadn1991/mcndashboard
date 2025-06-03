@@ -50,7 +50,7 @@ const TopUsers = () => {
                     {listUsersPost.map((item, index) => (
                         <Card key={index} className='flex flex-row gap-4 p-3 justify-between items-center'>
                             <div className='w-12 h-12 rounded-sm relative overflow-hidden'>
-                                <Image src={item.avatar} alt={item.username} fill className='object-cover' />
+                                <Image src={item.avatar} alt={item.username} fill sizes='100%' className='object-cover' />
                             </div>
                             <div className='flex-1 flex-col gap-2'>
                                 <h4 className='text-sm font-semibold mb-1'>
