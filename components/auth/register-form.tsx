@@ -23,36 +23,53 @@ import { registerUser } from "@/lib/api/authent";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useRouter } from 'next/navigation'
+import { Loader2Icon } from "lucide-react";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const router = useRouter()
+  const [isSubmit, setisSubmit] = React.useState(false);
 
   const FormSchema = z.object({
-    userEmail: z.string().email("Email không hợp lệ."),
-    password: z.string().min(6,"Mật khẩu phải có ít nhất 6 ký tự."),
+    username: z.string()
+    .nonempty("Email là bắt buộc.")
+    .email("Email không hợp lệ."),
+    password: z.string()
+    .nonempty("Password là bắt buộc.")
+    .min(6,"Password phải có ít nhất 6 ký tự."),
     confirmPassword: z.string()
+    .nonempty("Confirm Password là bắt buộc.")
   }).refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu không khớp",
+    message: "Password không khớp",
     path: ["confirmPassword"],
   });
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      userEmail: "",
+      username: "",
       password: "",
       confirmPassword: "",
     },
   })
 
+  const resetPassword = () => {
+    form.setValue('password', '');
+    form.setValue('confirmPassword', '');
+  }
+
   const handleRegister = async (data: z.infer<typeof FormSchema>) => {
-    await registerUser({ email: data.userEmail, password: data.password });
-    form.reset()
-    router.push('/login')
+    try {
+      setisSubmit(true)
+      await registerUser({ username: data.username, password: data.password });
+      form.reset()
+    } catch (error) {
+      resetPassword()
+      console.error(error)
+    } finally {
+      setisSubmit(false)
+    }
   }
 
   return (
@@ -72,7 +89,7 @@ export function RegisterForm({
                   <div className="grid gap-2">
                     <FormField
                       control={form.control}
-                      name="userEmail"
+                      name="username"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-primary">Email</FormLabel>
@@ -114,8 +131,9 @@ export function RegisterForm({
                       )}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
+                  <Button disabled={isSubmit} type="submit" className="w-full">
                     Register
+                    {isSubmit && <Loader2Icon className="animate-spin" />}
                   </Button>
                 </div>
                 <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
