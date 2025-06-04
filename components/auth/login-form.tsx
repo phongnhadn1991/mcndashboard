@@ -20,17 +20,18 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import Link from "next/link"
-import { loginUser } from "@/lib/api/authent";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Loader2Icon } from "lucide-react";
+import { useAuth } from "@/lib/providers/AuthProvider";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const [isSubmit, setisSubmit] = React.useState(false);
+  const { login } = useAuth();
   
   const FormSchema = z.object({
     username: z.string()
@@ -52,7 +53,7 @@ export function LoginForm({
   const handleLogin = async (data: z.infer<typeof FormSchema>) => {
     try {
       setisSubmit(true)
-      await loginUser({username: data.username, password: data.password})
+      await login({username: data.username, password: data.password})
       form.reset()
     } catch (error) {
       console.error(error);

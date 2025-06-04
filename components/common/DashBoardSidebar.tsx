@@ -55,7 +55,6 @@ const DashBoardSidebar = () => {
                     <SidebarMenuItem className="flex items-center gap-3">
                         <Avatar>
                             <AvatarImage src="./next.svg" alt="@shadcn" />
-                            <AvatarFallback>CN</AvatarFallback>
                         </Avatar>
                         <SidebarGroupLabel>
                             <div className="flex flex-col text-xs">

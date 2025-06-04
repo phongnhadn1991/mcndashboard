@@ -15,11 +15,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useTheme } from 'next-themes';
-import { useState, useEffect } from 'react';
+import { useTheme } from '@/lib/hooks/useTheme';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from "@/lib/providers/AuthProvider";
 
 const DashNavbar = () => {
     return (
@@ -80,21 +80,17 @@ const NotificationBar = () => (
 )
 
 const ThemeDarkMode = () => {
-    const { theme, setTheme } = useTheme()
-    const [mounted, setMounted] = useState(false)
-    useEffect(() => {
-        setMounted(true)
-    }, [])
+    const { theme, mounted, toggleTheme } = useTheme();
 
     return (
         <div className='p-themeMode'>
             {mounted && (
                 theme === 'light' ? (
-                    <Button className='cursor-pointer rounded-full' variant="secondary" size="icon" onClick={() => setTheme("dark")}>
+                    <Button className='cursor-pointer rounded-full' variant="secondary" size="icon" onClick={toggleTheme}>
                         <Moon className="h-5 w-5" />
                     </Button>
                 ) : (
-                    <Button className='cursor-pointer rounded-full' variant="secondary" size="icon" onClick={() => setTheme("light")}>
+                    <Button className='cursor-pointer rounded-full' variant="secondary" size="icon" onClick={toggleTheme}>
                         <Sun className="h-5 w-5" />
                     </Button>
                 )
@@ -103,42 +99,49 @@ const ThemeDarkMode = () => {
     )
 }
 
-const UserDropdown = () => (
-    <div className="p-userDropdown">
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant={'ghost'} className="py-6 px-4">
-                    <div className='flex items-center gap-2 cursor-pointer'>
-                        <Avatar>
-                            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                            <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                        <h5 className='text-xs font-bold text-gray-700 dark:text-gray-200'>NgoanMc</h5>
-                        <ChevronDown />
-                    </div>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent sideOffset={10} align={'end'} className='min-w-40'>
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        <User />
-                        Profile
+const UserDropdown = () => {
+    const { logout } = useAuth();
+    
+    return (
+        <div className="p-userDropdown">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant={'ghost'} className="py-6 px-4">
+                        <div className='flex items-center gap-2 cursor-pointer'>
+                            <Avatar>
+                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                <AvatarFallback>CN</AvatarFallback>
+                            </Avatar>
+                            <h5 className='text-xs font-bold text-gray-700 dark:text-gray-200'>NgoanMc</h5>
+                            <ChevronDown />
+                        </div>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent sideOffset={10} align={'end'} className='min-w-40'>
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem>
+                            <User />
+                            Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <Settings />
+                            Settings
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
+                      onClick={() => logout()}
+                    >
+                        <LogOut />
+                        Log out
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <Settings />
-                        Settings
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900">
-                    <LogOut />
-                    Log out
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    </div>
-)
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    )
+}
 
 export default DashNavbar;

@@ -106,7 +106,7 @@ export const columns: ColumnDef<Posts>[] = [
       const thumbnail = row.getValue("thumbnail") as { large: string } | undefined;
       return thumbnail ? (
         <div>
-          <Image className="h-20 w-30 object-cover rounded-lg" src={thumbnail.large} alt="Images" width="120" height="80"/>
+          <Image className="object-cover rounded-lg" src={thumbnail.large} alt="Images" width="120" height="80" />
         </div>
       ) : null;
     },
