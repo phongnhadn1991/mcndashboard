@@ -101,18 +101,21 @@ const ThemeDarkMode = () => {
 
 const UserDropdown = () => {
     const { logout } = useAuth();
-    
+    const { user } = useAuth();
     return (
         <div className="p-userDropdown">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant={'ghost'} className="py-6 px-4">
                         <div className='flex items-center gap-2 cursor-pointer'>
+                            
                             <Avatar>
-                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                <AvatarImage src={user?.avatar_urls?.[48]} alt="@shadcn" />
                                 <AvatarFallback>CN</AvatarFallback>
                             </Avatar>
-                            <h5 className='text-xs font-bold text-gray-700 dark:text-gray-200'>NgoanMc</h5>
+                            <h5 className='text-xs font-bold text-gray-700 dark:text-gray-200'>
+                                {user?.name}
+                            </h5>
                             <ChevronDown />
                         </div>
                     </Button>

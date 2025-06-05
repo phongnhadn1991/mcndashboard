@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 
 export const registerUser = async (user: User) => {
   try {
-    const response = await axiosInstance.post('/auth/register', user);
+    const response = await axiosInstance.post('ngoanmc/v1/auth/register', user);
     toast.success(response.data.message);
     return response.data;
   } catch (error: unknown) {
@@ -19,13 +19,20 @@ export const registerUser = async (user: User) => {
 
 export const loginUser = async (user: User) => {
   try {
-    const response = await axiosInstance.post('/auth/login', user);
-    const { token } = response.data;
+    const response = await axiosInstance.post('jwt-auth/v1/token', user);
+    const { token } = response.data.data;
+
+    // Lưu token vào cookie với domain và path phù hợp
+    Cookies.set('token', token, { 
+      expires: 7,
+      path: '/',
+      sameSite: 'strict'
+    });
     
-    // Lưu token vào cookie
-    Cookies.set('token', token, { expires: 7 }); // Token hết hạn sau 7 ngày
+    // Cập nhật header Authorization cho axios instance
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     
-    toast.success(response.data.message);
+    toast.success('Đăng nhập thành công');
     return response.data;
   } catch (error: unknown) {
     if (error instanceof AxiosError && error.response?.status === 401) {
@@ -36,7 +43,21 @@ export const loginUser = async (user: User) => {
 };
 
 export const logoutUser = () => {
-    Cookies.remove('token');
+    Cookies.remove('token', { path: '/' });
+    // Xóa header Authorization
+    delete axiosInstance.defaults.headers.common['Authorization'];
     toast.success('Đăng xuất thành công');
     return { success: true };
+};
+
+export const getUserMe = async () => {
+  try {
+    const response = await axiosInstance.get('wp/v2/users/me');
+    return response.data;
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      toast.error(error.response?.data?.message || 'Không thể lấy thông tin người dùng');
+    }
+    throw error;
+  }
 };

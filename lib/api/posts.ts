@@ -3,7 +3,7 @@ import { Posts } from '@/types/posts';
 
 export const getAllPosts = async (): Promise<Posts[]> => {
   try {
-    const response = await axiosInstance.get('/posts');
+    const response = await axiosInstance.get('ngoanmc/v1/posts');
     return response.data.data;
   } catch (error) {
     console.error('Error fetching posts:', error);

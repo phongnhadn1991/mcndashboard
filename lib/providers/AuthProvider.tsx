@@ -1,9 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user';
-import { loginUser, logoutUser } from '@/lib/api/authent';
+import { loginUser, logoutUser, getUserMe } from '@/lib/api/authent';
 import Cookies from 'js-cookie';
 
 interface AuthContextType {
@@ -20,23 +20,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    // Kiểm tra token khi component mount
-    const token = Cookies.get('token');
-    if (token) {
-      // TODO: Gọi API để lấy thông tin user
-      setLoading(false);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
   const login = async (userData: User) => {
     try {
-      const response = await loginUser(userData);
-      setUser(response.user);
+      await loginUser(userData);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const token = Cookies.get('token');
+      if (token) {
+        const userInfo = await getUserMe();
+        setUser(userInfo);
+        console.log('userInfo.data', userInfo);
+      }
       router.push('/');
     } catch (error) {
+      setLoading(false);
       console.error('Login error:', error);
       throw error;
     }
