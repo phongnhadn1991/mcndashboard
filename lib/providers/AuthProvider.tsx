@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { User } from '@/types/user';
 import { loginUser, logoutUser } from '@/lib/api/authent';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks/useRedux';
-import { fetchUser, clearUser, setUser } from '@/lib/store/features/userSlice';
+import { fetchUser, clearUser } from '@/lib/store/features/userSlice';
 import Cookies from 'js-cookie';
 
 interface AuthContextType {
