@@ -69,7 +69,6 @@ export const getUserMe = async () => {
         Cookies.remove('token', { path: '/' });
         delete axiosInstance.defaults.headers.common['Authorization'];
       }
-      toast.error(error.response?.data?.message || 'Không thể lấy thông tin người dùng');
     }
     throw error;
   }
