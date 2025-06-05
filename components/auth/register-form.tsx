@@ -24,12 +24,15 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Loader2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const [isSubmit, setisSubmit] = React.useState(false);
+
+  const router = useRouter()
 
   const FormSchema = z.object({
     username: z.string()
@@ -63,6 +66,8 @@ export function RegisterForm({
     try {
       setisSubmit(true)
       await registerUser({ username: data.username, password: data.password });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      router.push('/login')
       form.reset()
     } catch (error) {
       resetPassword()

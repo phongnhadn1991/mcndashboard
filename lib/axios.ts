@@ -15,7 +15,13 @@ axiosInstance.interceptors.request.use(
     // Lấy token từ Cookies
     const token = Cookies.get('token');
     if (token) {
+      // Đảm bảo header Authorization được set đúng format
       config.headers.Authorization = `Bearer ${token}`;
+      // Log để debug
+      console.log('Request headers:', config.headers);
+    } else {
+      // Nếu không có token, xóa header Authorization
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -33,13 +39,18 @@ axiosInstance.interceptors.response.use(
     // Xử lý lỗi ở đây
     if (error.response) {
       // Lỗi từ server
-      console.error('Response Error:', error.response.data);
+      console.log('Response Error:', error.response.data);
+      // Nếu là lỗi 401, xóa token
+      if (error.response.status === 401) {
+        Cookies.remove('token', { path: '/' });
+        delete axiosInstance.defaults.headers.common['Authorization'];
+      }
     } else if (error.request) {
       // Không nhận được response
-      console.error('Request Error:', error.request);
+      console.log('Request Error:', error.request);
     } else {
       // Lỗi khi setting up request
-      console.error('Error:', error.message);
+      console.log('Error:', error.message);
     }
     return Promise.reject(error);
   }

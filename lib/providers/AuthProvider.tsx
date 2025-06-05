@@ -1,9 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user';
-import { loginUser, logoutUser, getUserMe } from '@/lib/api/authent';
+import { loginUser, logoutUser } from '@/lib/api/authent';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks/useRedux';
+import { fetchUser, clearUser, setUser } from '@/lib/store/features/userSlice';
 import Cookies from 'js-cookie';
 
 interface AuthContextType {
@@ -16,23 +18,26 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { user, loading } = useAppSelector((state) => state.user);
+
+  useEffect(() => {
+    // Chỉ gọi API khi có token và chưa có user
+    const token = Cookies.get('token');
+    if (token && !user) {
+      dispatch(fetchUser());
+    }
+  }, [dispatch, user]);
 
   const login = async (userData: User) => {
     try {
       await loginUser(userData);
+      // Đợi một chút để đảm bảo token đã được lưu vào cookie
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const token = Cookies.get('token');
-      if (token) {
-        const userInfo = await getUserMe();
-        setUser(userInfo);
-        console.log('userInfo.data', userInfo);
-      }
       router.push('/');
+      await dispatch(fetchUser());
     } catch (error) {
-      setLoading(false);
       console.error('Login error:', error);
       throw error;
     }
@@ -41,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await logoutUser();
-      setUser(null);
+      dispatch(clearUser());
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);
