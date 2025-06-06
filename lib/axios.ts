@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { refreshToken } from './api/authent';
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -35,23 +36,37 @@ axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
-    // Xử lý lỗi ở đây
-    if (error.response) {
-      // Lỗi từ server
-      console.log('Response Error:', error.response.data);
-      // Nếu là lỗi 401, xóa token
-      if (error.response.status === 401) {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Nếu là lỗi 401 và chưa thử refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Thử refresh token
+        const newToken = await refreshToken();
+        
+        // Cập nhật header Authorization với token mới
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        
+        // Thử lại request ban đầu
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        // Nếu refresh token thất bại, xóa token và chuyển về trang login
         Cookies.remove('token', { path: '/' });
+        Cookies.remove('refresh_token', { path: '/' });
         delete axiosInstance.defaults.headers.common['Authorization'];
+        
+        // Chuyển hướng về trang login nếu đang ở client side
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        
+        return Promise.reject(refreshError);
       }
-    } else if (error.request) {
-      // Không nhận được response
-      console.log('Request Error:', error.request);
-    } else {
-      // Lỗi khi setting up request
-      console.log('Error:', error.message);
     }
+
     return Promise.reject(error);
   }
 );

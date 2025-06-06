@@ -20,13 +20,19 @@ export const registerUser = async (user: User) => {
 export const loginUser = async (user: User) => {
   try {
     const response = await axiosInstance.post('jwt-auth/v1/token', user);
-    const { token } = response.data.data;
+    const { token, refresh_token } = response.data.data;
 
-    // Lưu token vào cookie với domain và path phù hợp
+    // Lưu token và refresh token vào cookie
     Cookies.set('token', token, { 
       expires: 7,
       path: '/',
-      sameSite: 'strict'
+      sameSite: 'lax' // Thay đổi từ strict sang lax để cho phép cross-site requests
+    });
+    
+    Cookies.set('refresh_token', refresh_token, {
+      expires: 30, // Refresh token có thời hạn dài hơn
+      path: '/',
+      sameSite: 'lax'
     });
     
     // Cập nhật header Authorization cho axios instance
@@ -44,6 +50,7 @@ export const loginUser = async (user: User) => {
 
 export const logoutUser = () => {
     Cookies.remove('token', { path: '/' });
+    Cookies.remove('refresh_token', { path: '/' });
     // Xóa header Authorization
     delete axiosInstance.defaults.headers.common['Authorization'];
     toast.success('Đăng xuất thành công');
@@ -70,6 +77,37 @@ export const getUserMe = async () => {
         delete axiosInstance.defaults.headers.common['Authorization'];
       }
     }
+    throw error;
+  }
+};
+
+export const refreshToken = async () => {
+  try {
+    const refresh_token = Cookies.get('refresh_token');
+    if (!refresh_token) {
+      throw new Error('Không tìm thấy refresh token');
+    }
+
+    const response = await axiosInstance.post('jwt-auth/v1/token/refresh', {
+      refresh_token
+    });
+
+    const { token } = response.data.data;
+    
+    // Cập nhật token mới
+    Cookies.set('token', token, {
+      expires: 7,
+      path: '/',
+      sameSite: 'lax'
+    });
+
+    // Cập nhật header Authorization
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    
+    return token;
+  } catch (error) {
+    // Nếu refresh token cũng hết hạn, đăng xuất người dùng
+    logoutUser();
     throw error;
   }
 };

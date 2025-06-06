@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { User } from '@/types/user';
 import { loginUser, logoutUser } from '@/lib/api/authent';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks/useRedux';
-import { fetchUser, clearUser } from '@/lib/store/features/userSlice';
+import { fetchUser, clearUser, loadUserFromStorage } from '@/lib/store/features/userSlice';
 import Cookies from 'js-cookie';
 
 interface AuthContextType {
@@ -22,13 +22,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
   const { user, loading } = useAppSelector((state) => state.user);
 
+  // Load user từ localStorage sau khi component được mount
   useEffect(() => {
-    // Chỉ gọi API khi có token và chưa có user
+    dispatch(loadUserFromStorage());
+  }, [dispatch]);
+
+  useEffect(() => {
     const token = Cookies.get('token');
-    if (token && !user) {
+    // Chỉ gọi API khi có token và chưa có user và không đang loading
+    if (token && !user && !loading) {
       dispatch(fetchUser());
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, loading]);
 
   const login = async (userData: User) => {
     try {

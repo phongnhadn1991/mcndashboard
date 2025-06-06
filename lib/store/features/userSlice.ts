@@ -47,6 +47,20 @@ const userSlice = createSlice({
       state.user = null;
       state.error = null;
     },
+    // Thêm action để load user từ localStorage
+    loadUserFromStorage: (state) => {
+      if (typeof window !== 'undefined') {
+        const savedState = localStorage.getItem('userState');
+        if (savedState) {
+          try {
+            const parsedState = JSON.parse(savedState);
+            state.user = parsedState.user;
+          } catch (e) {
+            console.error('Error parsing user state:', e);
+          }
+        }
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -65,5 +79,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, clearUser } = userSlice.actions;
+export const { setUser, clearUser, loadUserFromStorage } = userSlice.actions;
 export default userSlice.reducer; 
