@@ -2,7 +2,6 @@
 import { LogOut, Moon, Sun, Settings, User, ChevronDown, Bell, Trash } from 'lucide-react';
 import {
     Avatar,
-    AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -114,7 +113,6 @@ export const UserDropdown = () => {
                             
                             <Avatar>
                                 <AvatarImage src={getUserAvatar(user)} alt="@shadcn" />
-                                <AvatarFallback>{user?.display_name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <h5 className='text-xs font-bold text-gray-700 dark:text-gray-200'>
                                 {user?.display_name}
