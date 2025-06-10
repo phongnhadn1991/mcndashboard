@@ -58,7 +58,7 @@ axiosInstance.interceptors.response.use(
         Cookies.remove('token', { path: '/' });
         Cookies.remove('refresh_token', { path: '/' });
         delete axiosInstance.defaults.headers.common['Authorization'];
-        
+
         // Chuyển hướng về trang login nếu đang ở client side
         if (typeof window !== 'undefined') {
           window.location.href = '/login';

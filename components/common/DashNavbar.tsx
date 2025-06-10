@@ -20,6 +20,9 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from "@/lib/providers/AuthProvider";
+import Link from 'next/link';
+import { ROUTES } from '@/constants/routes';
+import { getUserAvatar } from '@/lib/utils';
 
 const DashNavbar = () => {
     return (
@@ -34,7 +37,7 @@ const DashNavbar = () => {
     );
 }
 
-const NotificationBar = () => (
+export const NotificationBar = () => (
     <div className='p-notification'>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -79,7 +82,7 @@ const NotificationBar = () => (
     </div>
 )
 
-const ThemeDarkMode = () => {
+export const ThemeDarkMode = () => {
     const { theme, mounted, toggleTheme } = useTheme();
 
     return (
@@ -99,7 +102,7 @@ const ThemeDarkMode = () => {
     )
 }
 
-const UserDropdown = () => {
+export const UserDropdown = () => {
     const { logout } = useAuth();
     const { user } = useAuth();
     return (
@@ -110,11 +113,11 @@ const UserDropdown = () => {
                         <div className='flex items-center gap-2 cursor-pointer'>
                             
                             <Avatar>
-                                <AvatarImage src={user?.avatar_urls?.[48]} alt="@shadcn" />
-                                <AvatarFallback>CN</AvatarFallback>
+                                <AvatarImage src={getUserAvatar(user)} alt="@shadcn" />
+                                <AvatarFallback>{user?.display_name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <h5 className='text-xs font-bold text-gray-700 dark:text-gray-200'>
-                                {user?.name}
+                                {user?.display_name}
                             </h5>
                             <ChevronDown />
                         </div>
@@ -124,18 +127,22 @@ const UserDropdown = () => {
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                        <DropdownMenuItem>
-                            <User />
-                            Profile
+                        <DropdownMenuItem asChild>
+                            <Link href={ROUTES.account_profile} className='cursor-pointer'>
+                                <User />
+                                Profile
+                            </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Settings />
-                            Settings
+                        <DropdownMenuItem asChild>
+                            <Link href={ROUTES.account_settings} className='cursor-pointer'>
+                                <Settings />
+                                Settings
+                            </Link>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
-                      className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
+                      className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900 cursor-pointer"
                       onClick={() => logout()}
                     >
                         <LogOut />

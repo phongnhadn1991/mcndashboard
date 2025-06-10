@@ -44,35 +44,15 @@ export const loginUser = async (user: User) => {
 };
 
 export const logoutUser = () => {
-    Cookies.remove('token', { path: '/' });
+    Cookies.remove('token', { 
+      path: '/',
+      domain: window.location.hostname,
+      sameSite: 'lax'
+    });
     // Xóa header Authorization
     delete axiosInstance.defaults.headers.common['Authorization'];
     toast.success('Đăng xuất thành công');
     return { success: true };
-};
-
-export const getUserMe = async () => {
-  try {
-    const token = Cookies.get('token');
-    if (!token) {
-      throw new Error('Không tìm thấy token');
-    }
-    
-    // Đảm bảo header Authorization được set
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    
-    const response = await axiosInstance.get('wp/v2/users/me');
-    return response.data;
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      if (error.response?.status === 401) {
-        // Nếu token hết hạn, xóa token và header
-        Cookies.remove('token', { path: '/' });
-        delete axiosInstance.defaults.headers.common['Authorization'];
-      }
-    }
-    throw error;
-  }
 };
 
 export const refreshToken = async () => {

@@ -1,8 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { User } from '@/types/user';
-import { getUserMe } from '@/lib/api/authent';
-import Cookies from 'js-cookie';
-import { AxiosError } from 'axios';
+import { getUserMe, updateUserMeByID } from '@/lib/api/user';
 
 interface UserState {
   user: User | null;
@@ -19,18 +17,24 @@ const initialState: UserState = {
 // Async thunk để lấy thông tin user
 export const fetchUser = createAsyncThunk(
   'user/fetchUser',
-  async (_, { rejectWithValue }) => {
+  async () => {
     try {
-      const token = Cookies.get('token');
-      if (!token) {
-        return rejectWithValue('Không tìm thấy token');
-      }
       const response = await getUserMe();
       return response;
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        return rejectWithValue(error.response?.data?.message || 'Lỗi khi lấy thông tin user');
-      }
+      throw error;
+    }
+  }
+);
+
+// Async thunk để lấy thông tin user
+export const updateUser = createAsyncThunk(
+  'user/updateUser',
+  async (user:User) => {
+    try {
+      const response = await updateUserMeByID(user);
+      return response;
+    } catch (error: unknown) {
       throw error;
     }
   }
@@ -75,6 +79,10 @@ const userSlice = createSlice({
       .addCase(fetchUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = {...state.user, ...action.payload};
       });
   },
 });

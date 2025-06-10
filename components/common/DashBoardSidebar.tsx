@@ -17,12 +17,13 @@ import { Avatar, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { CollapsibleContent } from "@radix-ui/react-collapsible";
 import { Collapsible, CollapsibleTrigger } from "../ui/collapsible";
+import { ROUTES } from "@/constants/routes";
 
 // Menu items.
 const items = [
     {
         title: "Dashboard",
-        url: "/",
+        url: ROUTES.home,
         icon: LayoutDashboard,
     },
     {
@@ -54,7 +55,7 @@ const DashBoardSidebar = () => {
                 <SidebarMenu>
                     <SidebarMenuItem className="flex items-center gap-3">
                         <Avatar>
-                            <AvatarImage src="./next.svg" alt="@shadcn" />
+                            <AvatarImage src="../next.svg" alt="@shadcn" />
                         </Avatar>
                         <SidebarGroupLabel>
                             <div className="flex flex-col text-xs">
@@ -123,7 +124,7 @@ const DashBoardSidebar = () => {
                                 <SidebarMenu>
                                     <SidebarMenuItem>
                                         <SidebarMenuButton asChild>
-                                            <Link href={'/posts'}>
+                                            <Link href={ROUTES.post}>
                                                 <Newspaper />
                                                 See All Posts
                                             </Link>
