@@ -8,9 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 interface UserAvatar {
   acf?: {
     acf_optionuser?: {
-      user_avatar?: {
-        thumbnail?: string;
-      };
+      user_avatar?: string
     };
   };
   avatar_urls?: {
@@ -21,5 +19,5 @@ interface UserAvatar {
 export function getUserAvatar(user: UserAvatar | null | undefined): string | undefined {
   if (!user) return undefined;
   
-  return user.acf?.acf_optionuser?.user_avatar?.thumbnail || user.avatar_urls?.[48];
+  return user.acf?.acf_optionuser?.user_avatar || user.avatar_urls?.[48];
 }

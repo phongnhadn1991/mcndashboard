@@ -23,6 +23,7 @@ const PageProfile = () => {
     const [uName, setUName] = React.useState<string>('');
     const [uFullName, setUFullName] = React.useState<string>('');
     const [uPhone, setUPhone] = React.useState<string>('');
+    const [uAvatar, setUAvatar] = React.useState<string>('');
 
     useEffect(() => {
         if (user) {
@@ -30,6 +31,7 @@ const PageProfile = () => {
             if (user?.name) { setUName(user.name) }
             if (user?.acf?.acf_optionuser?.user_fullname) { setUFullName(user?.acf?.acf_optionuser?.user_fullname) }
             if (user?.acf?.acf_optionuser?.user_phone) { setUPhone(user?.acf?.acf_optionuser?.user_phone) }
+            if (user?.acf?.acf_optionuser?.user_avatar) { setUAvatar(user?.acf?.acf_optionuser?.user_avatar) }
         }
     }, [user]);
 
@@ -41,7 +43,8 @@ const PageProfile = () => {
             acf: {
                 acf_optionuser: {
                   user_fullname: uFullName,
-                  user_phone: uPhone
+                  user_phone: uPhone,
+                  user_avatar: uAvatar
                 }
             }
         }
@@ -75,7 +78,7 @@ const PageProfile = () => {
                         <CardContent className="space-y-6">
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
-                                    <AvatarImage src={getUserAvatar(user)} />
+                                    <AvatarImage src={uAvatar ? uAvatar : getUserAvatar(user)} />
                                 </Avatar>
                                 <div className="flex gap-2">
                                     <Button variant="outline" size="sm">

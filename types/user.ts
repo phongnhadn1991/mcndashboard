@@ -14,13 +14,7 @@ export type User = {
     acf_optionuser?: {
       user_fullname?: string
       user_phone?: string
-      user_avatar?: {
-        thumbnail?: string,
-        medium?: string,
-        medium_large?: string,
-        large?: string,
-        url?: string
-      }
+      user_avatar?: string
     }
   };
 };
