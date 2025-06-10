@@ -7,16 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Pencil, X } from "lucide-react";
+import { Loader2Icon, Pencil, X } from "lucide-react";
 import { useAuth } from '@/lib/providers/AuthProvider';
 import { User } from '@/types/user';
 import { getUserAvatar } from '@/lib/utils';
 import { useAppDispatch } from '@/lib/hooks/useRedux';
 import { updateUser } from '@/lib/store/features/userSlice';
+import { toast } from 'sonner';
 
 const PageProfile = () => {
     const { user } = useAuth();
     const dispatch = useAppDispatch()
+    const [isSubmit, setIsSubmit] = React.useState<boolean>(false);
     const [uEmail, setUEmail] = React.useState<string>('');
     const [uName, setUName] = React.useState<string>('');
     const [uFullName, setUFullName] = React.useState<string>('');
@@ -43,7 +45,15 @@ const PageProfile = () => {
                 }
             }
         }
-        await dispatch(updateUser(dataUser))
+        try {
+            setIsSubmit(true)
+            await dispatch(updateUser(dataUser))
+            toast.success('Cập nhật thành công');
+        } catch (error) {
+            throw error;
+        } finally {
+            setIsSubmit(false)
+        }
     }
 
     return (
@@ -144,7 +154,10 @@ const PageProfile = () => {
                                     </Select>
                                 </div>
                             </div>
-                            <Button type='submit' onClick={handleUpdateUser} className="w-full">Lưu thay đổi</Button>
+                            <Button disabled={isSubmit} type='submit' onClick={handleUpdateUser} className="w-full">
+                                Lưu thay đổi
+                                {isSubmit && <Loader2Icon className="animate-spin" />}
+                            </Button>
                         </CardContent>
                     </Card>
                 </TabsContent>
