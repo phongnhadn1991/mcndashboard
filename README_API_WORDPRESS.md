@@ -150,3 +150,38 @@ export const refreshToken = async () => {
     }
   };
 ```
+
+Vì token_refresh được lưu dưới dạng httpOnly nên không thể xoá vì thế ở đăng kí 1 api để logout và xoá token trên server
+Và ở frontend chỉ việc gọi tới jwt-auth/v1/logout
+/wp-json/jwt-auth/v1/token/refresh
+
+```Terminal
+// Đăng ký custom endpoint
+add_action('rest_api_init', function () {
+    register_rest_route('jwt-auth/v1', '/logout', array(
+        'methods' => 'POST',
+        'callback' => 'handle_logout',
+        'permission_callback' => function () {
+            return is_user_logged_in();
+        }
+    ));
+});
+
+// Xử lý logout
+function handle_logout() {
+    // Xóa refresh token cookie
+    if (isset($_COOKIE['refresh_token'])) {
+        setcookie('refresh_token', '', time() - 3600, '/', $_SERVER['HTTP_HOST'], true, true);
+    }
+
+    // Xóa các cookie khác nếu cần
+    if (isset($_COOKIE['token'])) {
+        setcookie('token', '', time() - 3600, '/', $_SERVER['HTTP_HOST'], true, true);
+    }
+
+    return new WP_REST_Response(array(
+        'success' => true,
+        'message' => 'Logged out successfully'
+    ), 200);
+}
+```

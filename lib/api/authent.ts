@@ -43,7 +43,8 @@ export const loginUser = async (user: User) => {
   }
 };
 
-export const logoutUser = () => {
+export const logoutUser = async () => {
+    await axiosInstance.post('jwt-auth/v1/logout');
     Cookies.remove('token', { 
       path: '/',
       domain: window.location.hostname,

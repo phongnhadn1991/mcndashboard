@@ -54,7 +54,7 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         // Nếu refresh token thất bại, xóa token và chuyển về trang login
         Cookies.remove('token', { path: '/' });
-        Cookies.remove('refresh_token', { path: '/' });
+        await axiosInstance.post('jwt-auth/v1/logout');
         delete axiosInstance.defaults.headers.common['Authorization'];
 
         // Chuyển hướng về trang login nếu đang ở client side
