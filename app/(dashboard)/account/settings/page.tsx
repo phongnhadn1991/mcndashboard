@@ -16,6 +16,7 @@ import { useAppDispatch } from '@/lib/hooks/useRedux';
 import { deleteAvatarUser, updateUser } from '@/lib/store/features/userSlice';
 import { toast } from 'sonner';
 import { api_uploadMediaImage } from '@/lib/api/media';
+import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 
 const PageProfile = () => {
     const { user } = useAuth();
@@ -274,20 +275,8 @@ const PageProfile = () => {
                             <CardTitle>Đổi mật khẩu</CardTitle>
                             <CardDescription>Cập nhật mật khẩu của bạn</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="current-password">Mật khẩu hiện tại</Label>
-                                <Input id="current-password" type="password" />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="new-password">Mật khẩu mới</Label>
-                                <Input id="new-password" type="password" />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="confirm-password">Xác nhận mật khẩu mới</Label>
-                                <Input id="confirm-password" type="password" />
-                            </div>
-                            <Button className="w-full">Cập nhật mật khẩu</Button>
+                        <CardContent>
+                            <ForgotPasswordForm/>
                         </CardContent>
                     </Card>
                 </TabsContent>

@@ -20,3 +20,9 @@ export type User = {
     }
   };
 };
+
+export type PasswordData = {
+  current_password: string;
+  new_password: string;
+  new_confirmPassword: string;
+}

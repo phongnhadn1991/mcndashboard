@@ -1,7 +1,6 @@
 // import { toast } from 'sonner';
-import { User } from '@/types/user';
+import { PasswordData, User } from '@/types/user';
 import axiosInstance from '../axios';
-
 
 export const api_getUserMe = async () => {
     try {
@@ -24,6 +23,15 @@ export const api_updateUserMeByID = async (user:User) : Promise<User> => {
 export const api_deleteAvatarUser = async (userId: number) => {
   try {
       const response = await axiosInstance.post('ngoanmc/v1/users/delete_avatar', {user_id : userId});
+      return response.data;
+  } catch (error: unknown) {
+      throw error;
+  }
+}
+
+export const api_changePasswordUser = async (dataPasswordUser: PasswordData) => {
+  try {
+      const response = await axiosInstance.post('ngoanmc/v1/users/change_password', dataPasswordUser);
       return response.data;
   } catch (error: unknown) {
       throw error;
