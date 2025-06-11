@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { User } from '@/types/user';
-import { getUserMe, updateUserMeByID } from '@/lib/api/user';
+import { api_deleteAvatarUser, api_getUserMe, api_updateUserMeByID } from '@/lib/api/user';
 
 interface UserState {
   user: User | null;
@@ -19,7 +19,7 @@ export const fetchUser = createAsyncThunk(
   'user/fetchUser',
   async () => {
     try {
-      const response = await getUserMe();
+      const response = await api_getUserMe();
       return response;
     } catch (error: unknown) {
       throw error;
@@ -27,12 +27,25 @@ export const fetchUser = createAsyncThunk(
   }
 );
 
-// Async thunk để lấy thông tin user
+// Async thunk để update thông tin user
 export const updateUser = createAsyncThunk(
   'user/updateUser',
   async (user:User) => {
     try {
-      const response = await updateUserMeByID(user);
+      const response = await api_updateUserMeByID(user);
+      return response;
+    } catch (error: unknown) {
+      throw error;
+    }
+  }
+);
+
+// Async thunk để xoá avatar acf image user
+export const deleteAvatarUser = createAsyncThunk(
+  'user/deleteAvatarUser',
+  async (user_id: number) => {
+    try {
+      const response = await api_deleteAvatarUser(user_id);
       return response;
     } catch (error: unknown) {
       throw error;
@@ -81,6 +94,10 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = {...state.user, ...action.payload};
+      })
+      .addCase(deleteAvatarUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = {...state.user, ...action.payload};
       });

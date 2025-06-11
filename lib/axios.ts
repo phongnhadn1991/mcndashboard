@@ -19,8 +19,6 @@ axiosInstance.interceptors.request.use(
     if (token) {
       // Đảm bảo header Authorization được set đúng format
       config.headers.Authorization = `Bearer ${token}`;
-      // Log để debug
-      console.log('Request headers:', config.headers);
     } else {
       // Nếu không có token, xóa header Authorization
       delete config.headers.Authorization;

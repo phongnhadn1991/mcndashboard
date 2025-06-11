@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -8,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 interface UserAvatar {
   acf?: {
     acf_optionuser?: {
-      user_avatar?: string
+      user_avatar?: any
     };
   };
   avatar_urls?: {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,18 +13,21 @@ import { useAuth } from '@/lib/providers/AuthProvider';
 import { User } from '@/types/user';
 import { getUserAvatar } from '@/lib/utils';
 import { useAppDispatch } from '@/lib/hooks/useRedux';
-import { updateUser } from '@/lib/store/features/userSlice';
+import { deleteAvatarUser, updateUser } from '@/lib/store/features/userSlice';
 import { toast } from 'sonner';
+import { api_uploadMediaImage } from '@/lib/api/media';
 
 const PageProfile = () => {
     const { user } = useAuth();
     const dispatch = useAppDispatch()
     const [isSubmit, setIsSubmit] = React.useState<boolean>(false);
+    const [isUploading, setIsUploading] = React.useState<boolean>(false);
     const [uEmail, setUEmail] = React.useState<string>('');
     const [uName, setUName] = React.useState<string>('');
     const [uFullName, setUFullName] = React.useState<string>('');
     const [uPhone, setUPhone] = React.useState<string>('');
-    const [uAvatar, setUAvatar] = React.useState<string>('');
+    const [uAvatar, setUAvatar] = React.useState<any>('');
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (user) {
@@ -44,7 +48,6 @@ const PageProfile = () => {
                 acf_optionuser: {
                   user_fullname: uFullName,
                   user_phone: uPhone,
-                  user_avatar: uAvatar
                 }
             }
         }
@@ -58,6 +61,72 @@ const PageProfile = () => {
             setIsSubmit(false)
         }
     }
+
+    
+
+    const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Kiểm tra kích thước file (giới hạn 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            toast.error('Kích thước file không được vượt quá 2MB');
+            return;
+        }
+
+        // Kiểm tra định dạng file
+        if (!file.type.startsWith('image/')) {
+            toast.error('File phải là hình ảnh');
+            return;
+        }
+
+        try {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Upload ảnh lên WordPress Media Library
+            const uploadResponse = await api_uploadMediaImage(formData)
+            const mediaId = uploadResponse.id;
+            const imageUrl = uploadResponse.source_url;
+
+            // Cập nhật state với URL ảnh mới
+            setUAvatar(imageUrl);
+            const mixinAvartaUser = (userID:any, userAvatar?:any) => (
+                {
+                    id: userID,
+                    acf: {
+                        acf_optionuser: {
+                            user_avatar: userAvatar
+                        }
+                    }
+                }
+            )
+            // Chỉ cập nhật trường ACF
+            const dataUser: User = mixinAvartaUser(user?.id, mediaId)
+            await dispatch(updateUser(dataUser));
+            toast.success('Cập nhật avatar thành công');
+        } catch (error) {
+            toast.error('Có lỗi xảy ra khi upload ảnh');
+            console.error(error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveAvatar = async () => {
+        try {
+            setIsUploading(true);
+            setUAvatar('');
+            await dispatch(deleteAvatarUser(user?.id))
+            toast.success('Xóa avatar thành công');
+        } catch (error) {
+            toast.error('Có lỗi xảy ra khi xóa avatar');
+            console.error(error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     return (
         <div className='w-full rounded-xl p-6 bg-primary-foreground'>
@@ -78,17 +147,43 @@ const PageProfile = () => {
                         <CardContent className="space-y-6">
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
-                                    <AvatarImage src={uAvatar ? uAvatar : getUserAvatar(user)} />
+                                    <AvatarImage
+                                        src={uAvatar ? uAvatar : getUserAvatar(user)} 
+                                    />
                                 </Avatar>
                                 <div className="flex gap-2">
-                                    <Button variant="outline" size="sm">
-                                        <Pencil className="h-4 w-4 mr-2" />
+                                    <Input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleUploadAvatar}
+                                    />
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading || isSubmit}
+                                    >
+                                        {isUploading ? (
+                                            <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <Pencil className="h-4 w-4 mr-2" />
+                                        )}
                                         Upload
                                     </Button>
-                                    <Button variant="outline" size="sm" className="text-red-500">
-                                        <X className="h-4 w-4 mr-2" />
-                                        Xóa
-                                    </Button>
+                                    {uAvatar &&
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="text-red-500"
+                                            onClick={handleRemoveAvatar}
+                                            disabled={isUploading || isSubmit}
+                                        >
+                                            <X className="h-4 w-4 mr-2" />
+                                            Xóa
+                                        </Button>
+                                    }
                                 </div>
                             </div>
 
@@ -102,6 +197,7 @@ const PageProfile = () => {
                                         onChange={(e) => setUFullName(e.target.value)}
                                         placeholder="Nhập họ và tên"
                                         maxLength={25}
+                                        disabled={isUploading || isSubmit}
                                     />
                                 </div>
 
@@ -128,6 +224,7 @@ const PageProfile = () => {
                                         onChange={(e) => setUName(e.target.value)}
                                         placeholder="Nhập tên hiển thị"
                                         maxLength={20}
+                                        disabled={isUploading || isSubmit}
                                     />
                                 </div>
 
@@ -140,12 +237,13 @@ const PageProfile = () => {
                                         onChange={(e) => setUPhone(e.target.value)}
                                         placeholder="Nhập số điện thoại"
                                         maxLength={11}
+                                        disabled={isUploading || isSubmit}
                                     />
                                 </div>
 
                                 <div className="grid gap-2">
                                     <Label>Tùy chọn</Label>
-                                    <Select>
+                                    <Select disabled={isUploading || isSubmit}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Chọn một tùy chọn" />
                                         </SelectTrigger>
@@ -157,7 +255,12 @@ const PageProfile = () => {
                                     </Select>
                                 </div>
                             </div>
-                            <Button disabled={isSubmit} type='submit' onClick={handleUpdateUser} className="w-full">
+                            <Button
+                                disabled={isUploading || isSubmit}
+                                type='submit'
+                                onClick={handleUpdateUser}
+                                className="w-full"
+                            >
                                 Lưu thay đổi
                                 {isSubmit && <Loader2Icon className="animate-spin" />}
                             </Button>
