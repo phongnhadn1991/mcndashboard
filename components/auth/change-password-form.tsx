@@ -20,7 +20,7 @@ import { api_changePasswordUser } from "@/lib/api/user";
 import { toast } from "sonner";
 
 
-export function ForgotPasswordForm({
+export function ChangePasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {

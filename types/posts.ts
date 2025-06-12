@@ -1,11 +1,11 @@
 export type Category = {
-  id: number;
+  id: string | number;
   name: string;
   slug: string;
 };
 
 export type Posts = {
-  id: string;
+  id: string | number;
   title: string;
   slug: string;
   thumbnail: {
@@ -15,5 +15,5 @@ export type Posts = {
     full: string;
   };
   date: string;
-  categories?: Category[];
+  categories: Category[];
 }; 

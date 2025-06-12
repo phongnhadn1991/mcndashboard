@@ -30,7 +30,6 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command"
-
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -51,7 +50,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
 import {
     ChevronLeft,
     ChevronRight,
@@ -67,7 +65,6 @@ import {
     SelectValue,
   } from "@/components/ui/select"
 import { Badge } from "../ui/badge"
-import { getAllPosts } from "@/lib/api/posts"
 import { Posts, Category } from "@/types/posts"
 import Image from "next/image"
 
@@ -126,11 +123,11 @@ export const columns: ColumnDef<Posts>[] = [
     },
     cell: ({ row }) => <div>{row.getValue("title")}</div>,
   },
-  {
-    accessorKey: "slug",
-    header: "Slug",
-    cell: ({ row }) => <div>{row.getValue("slug")}</div>,
-  },
+  // {
+  //   accessorKey: "slug",
+  //   header: "Slug",
+  //   cell: ({ row }) => <div>{row.getValue("slug")}</div>,
+  // },
   {
     accessorKey: "categories",
     header: "Categories",
@@ -186,7 +183,7 @@ export const columns: ColumnDef<Posts>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(post.id)}
+              onClick={() => navigator.clipboard.writeText(String(post.id))}
             >
               Copy post ID
             </DropdownMenuItem>
@@ -200,7 +197,12 @@ export const columns: ColumnDef<Posts>[] = [
   },
 ]
 
-export function DataTablePosts() {
+type DataTablePostsProps = {
+  propPosts?: Posts[];
+  propsisLoadPosts?: boolean;
+};
+  
+export function DataTablePosts( {propPosts = [], propsisLoadPosts = false } : DataTablePostsProps ) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -208,7 +210,6 @@ export function DataTablePosts() {
   const [dataPosts, setDataPosts] = React.useState<Posts[]>([]);
   const [date, setDate] = React.useState<Date>()
   const [selectedCategory, setSelectedCategory] = React.useState<string>("")
-  const [isLoading, setIsLoading] = React.useState(true);
 
   // Lấy danh sách categories duy nhất từ tất cả bài post
   const uniqueCategories = React.useMemo(() => {
@@ -217,27 +218,25 @@ export function DataTablePosts() {
     const categories = new Set<string>();
     dataPosts.forEach(post => {
       post.categories?.forEach(category => {
-        categories.add(category.name);
+        categories.add(category.name || '');
       });
     });
     return Array.from(categories);
   }, [dataPosts]);
 
   React.useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
       try {
-        setIsLoading(true);
-        const posts = await getAllPosts();
-        setDataPosts(posts || []); // Đảm bảo luôn là mảng
+        if (propPosts && propPosts.length > 0) {
+          setDataPosts(propPosts);
+        }
       } catch (error) {
-        console.error('Error fetching posts:', error);
-        setDataPosts([]); // Set mảng rỗng nếu có lỗi
-      } finally {
-        setIsLoading(false);
+        console.error('Error setting posts:', error);
+        setDataPosts([]);
       }
     };
     fetchData();
-  }, []);
+  }, [propPosts]);
 
   const table = useReactTable({
     data: dataPosts || [], // Đảm bảo luôn là mảng
@@ -285,7 +284,7 @@ export function DataTablePosts() {
     setDate(undefined);
   };
 
-  if (isLoading) {
+  if (propsisLoadPosts) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-600"></div>

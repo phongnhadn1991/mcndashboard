@@ -16,7 +16,10 @@ import { useAppDispatch } from '@/lib/hooks/useRedux';
 import { deleteAvatarUser, updateUser } from '@/lib/store/features/userSlice';
 import { toast } from 'sonner';
 import { api_uploadMediaImage } from '@/lib/api/media';
-import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
+import { ChangePasswordForm } from '@/components/auth/change-password-form';
+import { DataTablePosts } from '@/components/posts/DataTablePosts';
+import { Posts } from '@/types/posts';
+import { getAllPosts } from '@/lib/api/posts';
 
 const PageProfile = () => {
     const { user } = useAuth();
@@ -29,6 +32,9 @@ const PageProfile = () => {
     const [uPhone, setUPhone] = React.useState<string>('');
     const [uAvatar, setUAvatar] = React.useState<any>('');
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [dataPosts, setDataPosts] = React.useState<Posts[]>([]);
+    const [activeTab, setActiveTab] = React.useState<string>("profile");
+    const [propsisLoadPosts, setPropsisLoadPosts] = React.useState<boolean>(false);
 
     useEffect(() => {
         if (user) {
@@ -39,6 +45,24 @@ const PageProfile = () => {
             if (user?.acf?.acf_optionuser?.user_avatar) { setUAvatar(user?.acf?.acf_optionuser?.user_avatar) }
         }
     }, [user]);
+
+    useEffect(() => {
+        if (activeTab === "posts") {
+            const fetchDataPost = async() => {
+                try {
+                    setPropsisLoadPosts(true);
+                    const resPosts = await getAllPosts()
+                    setDataPosts(resPosts)
+                } catch (error) {
+                    console.error('Error fetching posts:', error);
+                    setDataPosts([]);
+                } finally {
+                    setPropsisLoadPosts(false);
+                }
+            }
+            fetchDataPost();
+        }
+    }, [activeTab]);
 
     const handleUpdateUser = async (): Promise<void> => {
         const dataUser:User = {
@@ -62,8 +86,6 @@ const PageProfile = () => {
             setIsSubmit(false)
         }
     }
-
-    
 
     const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -132,7 +154,11 @@ const PageProfile = () => {
     return (
         <div className='w-full rounded-xl p-6 bg-primary-foreground'>
             <h2 className='text-xl font-semibold mb-6'>Settings</h2>
-            <Tabs defaultValue="profile" className="w-full">
+            <Tabs 
+                defaultValue="profile" 
+                className="w-full"
+                onValueChange={(value) => setActiveTab(value)}
+            >
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="profile">Thông tin cá nhân</TabsTrigger>
                     <TabsTrigger value="password">Đổi mật khẩu</TabsTrigger>
@@ -276,7 +302,7 @@ const PageProfile = () => {
                             <CardDescription>Cập nhật mật khẩu của bạn</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ForgotPasswordForm/>
+                            <ChangePasswordForm/>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -288,17 +314,10 @@ const PageProfile = () => {
                             <CardDescription>Danh sách các bài viết bạn đã đăng</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {/* Placeholder cho danh sách bài viết */}
-                                <div className="p-4 border rounded-lg">
-                                    <h3 className="font-medium">Bài viết mẫu 1</h3>
-                                    <p className="text-sm text-gray-500">Ngày đăng: 01/01/2024</p>
-                                </div>
-                                <div className="p-4 border rounded-lg">
-                                    <h3 className="font-medium">Bài viết mẫu 2</h3>
-                                    <p className="text-sm text-gray-500">Ngày đăng: 02/01/2024</p>
-                                </div>
-                            </div>
+                            <DataTablePosts 
+                                propPosts={dataPosts} 
+                                propsisLoadPosts={propsisLoadPosts}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
