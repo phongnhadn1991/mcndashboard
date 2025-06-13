@@ -51,8 +51,13 @@ const PageProfile = () => {
             const fetchDataPost = async() => {
                 try {
                     setPropsisLoadPosts(true);
-                    const resPosts = await getAllPosts()
-                    setDataPosts(resPosts)
+                    const resPosts = await getAllPosts({
+                        params: {
+                            author: user?.id,
+                            post_status: 'pending,publish'
+                        }
+                    })
+                    setDataPosts(resPosts.data)
                 } catch (error) {
                     console.error('Error fetching posts:', error);
                     setDataPosts([]);
@@ -62,7 +67,7 @@ const PageProfile = () => {
             }
             fetchDataPost();
         }
-    }, [activeTab]);
+    }, [activeTab, user?.id]);
 
     const handleUpdateUser = async (): Promise<void> => {
         const dataUser:User = {

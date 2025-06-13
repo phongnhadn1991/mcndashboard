@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, X } from "lucide-react"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -67,6 +67,7 @@ import {
 import { Badge } from "../ui/badge"
 import { Posts, Category } from "@/types/posts"
 import Image from "next/image"
+import clsx from "clsx"
 
 export const columns: ColumnDef<Posts>[] = [
   {
@@ -123,11 +124,6 @@ export const columns: ColumnDef<Posts>[] = [
     },
     cell: ({ row }) => <div>{row.getValue("title")}</div>,
   },
-  // {
-  //   accessorKey: "slug",
-  //   header: "Slug",
-  //   cell: ({ row }) => <div>{row.getValue("slug")}</div>,
-  // },
   {
     accessorKey: "categories",
     header: "Categories",
@@ -165,6 +161,22 @@ export const columns: ColumnDef<Posts>[] = [
     cell: ({ row }) => {
       return <div>{row.getValue("date")}</div>
     },
+  },
+  {
+    accessorKey: "status",
+    header: "status",
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+    cell: ({ row }) => <div>
+        <Badge
+          variant={row.getValue("status") === 'pending' ? 'destructive' : undefined}
+          className={clsx(
+          row.getValue("status") === 'publish' && "bg-green-700 hover:bg-green-900 text-white"  
+        )}>
+          {row.getValue("status")}
+        </Badge>
+      </div>,
   },
   {
     id: "actions",
@@ -239,7 +251,7 @@ export function DataTablePosts( {propPosts = [], propsisLoadPosts = false } : Da
   }, [propPosts]);
 
   const table = useReactTable({
-    data: dataPosts || [], // Đảm bảo luôn là mảng
+    data: propPosts,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -293,225 +305,253 @@ export function DataTablePosts( {propPosts = [], propsisLoadPosts = false } : Da
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4 gap-4">
-        <Button variant='destructive' onClick={handleClearFilters}>Clear Filter</Button>
-        <Input
-          placeholder="Filter title..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-[200px] justify-start text-left font-normal",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : <span>Pick a date</span>}
+    <div className="space-y-4">
+      <div className="w-full">
+        <div className="flex items-center py-4 gap-4">
+          {(table.getColumn("title")?.getFilterValue() as string) || 
+           (table.getColumn("categories")?.getFilterValue() as string) || 
+           (table.getColumn("date")?.getFilterValue() as string) ||
+           ((table.getColumn("status")?.getFilterValue() as string) && 
+            (table.getColumn("status")?.getFilterValue() as string) !== "all") ? (
+            <Button variant='destructive' onClick={handleClearFilters}>
+              <X/>
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+          ) : null}
+          <Input
+            placeholder="Filter title..."
+            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("title")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+          <Select
+            value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"}
+            onValueChange={(value) =>
+              table.getColumn("status")?.setFilterValue(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="publish">
+                Publish ({propPosts.filter(post => post.status === 'publish').length})
+              </SelectItem>
+              <SelectItem value="pending">
+                Pending ({propPosts.filter(post => post.status === 'pending').length})
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[200px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              className="w-[200px] justify-between"
-            >
-              {selectedCategory ? selectedCategory : "Select category..."}
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Search category..." />
-              <CommandEmpty>No category found.</CommandEmpty>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => {
-                    setSelectedCategory("");
-                  }}
-                >
-                  All Categories
-                </CommandItem>
-                {uniqueCategories.map((category) => (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-[200px] justify-between"
+              >
+                {selectedCategory ? selectedCategory : "Select category..."}
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Search category..." />
+                <CommandEmpty>No category found.</CommandEmpty>
+                <CommandGroup>
                   <CommandItem
-                    key={category}
                     onSelect={() => {
-                      setSelectedCategory(category);
+                      setSelectedCategory("");
                     }}
                   >
-                    {category}
+                    All Categories
                   </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                  {uniqueCategories.map((category) => (
+                    <CommandItem
+                      key={category}
+                      onSelect={() => {
+                        setSelectedCategory(category);
+                      }}
+                    >
+                      {category}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Columns <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
                   return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
                   )
                 })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-            <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
-            <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                table.setPageSize(Number(value))
-                }}
-            >
-                <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue placeholder={table.getState().pagination.pageSize} />
-                </SelectTrigger>
-                <SelectContent side="top">
-                {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                    {pageSize}
-                    </SelectItem>
-                ))}
-                </SelectContent>
-            </Select>
-            </div>
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-            </div>
-            <div className="flex items-center space-x-2">
-            <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-            >
-                <span className="sr-only">Go to first page</span>
-                <ChevronsLeft />
-            </Button>
-            <Button
-                variant="outline"
-                className="h-8 w-8 p-0"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-            >
-                <span className="sr-only">Go to previous page</span>
-                <ChevronLeft />
-            </Button>
-            <Button
-                variant="outline"
-                className="h-8 w-8 p-0"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-            >
-                <span className="sr-only">Go to next page</span>
-                <ChevronRight />
-            </Button>
-            <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-            >
-                <span className="sr-only">Go to last page</span>
-                <ChevronsRight />
-            </Button>
-            </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="flex items-center justify-between space-x-2 py-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+          </div>
+          <div className="flex items-center space-x-6 lg:space-x-8">
+              <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium">Rows per page</p>
+              <Select
+                  value={`${table.getState().pagination.pageSize}`}
+                  onValueChange={(value) => {
+                  table.setPageSize(Number(value))
+                  }}
+              >
+                  <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue placeholder={table.getState().pagination.pageSize} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                  {[10, 20, 30, 40, 50].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                      {pageSize}
+                      </SelectItem>
+                  ))}
+                  </SelectContent>
+              </Select>
+              </div>
+              <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
+              </div>
+              <div className="flex items-center space-x-2">
+              <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+              >
+                  <span className="sr-only">Go to first page</span>
+                  <ChevronsLeft />
+              </Button>
+              <Button
+                  variant="outline"
+                  className="h-8 w-8 p-0"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+              >
+                  <span className="sr-only">Go to previous page</span>
+                  <ChevronLeft />
+              </Button>
+              <Button
+                  variant="outline"
+                  className="h-8 w-8 p-0"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+              >
+                  <span className="sr-only">Go to next page</span>
+                  <ChevronRight />
+              </Button>
+              <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+              >
+                  <span className="sr-only">Go to last page</span>
+                  <ChevronsRight />
+              </Button>
+              </div>
+          </div>
         </div>
       </div>
     </div>
