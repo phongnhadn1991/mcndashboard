@@ -45,16 +45,19 @@ export const loginUser = async (user: User) => {
 
 export const logoutUser = async () => {
     await axiosInstance.post('jwt-auth/v1/logout');
-    Cookies.remove('token', { 
-      path: '/',
-      domain: window.location.hostname,
-      sameSite: 'lax'
-    });
-    // Xóa header Authorization
-    delete axiosInstance.defaults.headers.common['Authorization'];
-    toast.success('Đăng xuất thành công');
+    removeToken();
     return { success: true };
 };
+
+export const removeToken = () => {
+  Cookies.remove('token', { 
+    path: '/',
+    domain: window.location.hostname,
+    sameSite: 'lax'
+  });
+  // Xóa header Authorization
+  delete axiosInstance.defaults.headers.common['Authorization'];
+}
 
 export const refreshToken = async () => {
   try {
@@ -73,6 +76,7 @@ export const refreshToken = async () => {
     axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     return token;
   } catch (error) {
+    removeToken();
     throw error;
   }
 };
