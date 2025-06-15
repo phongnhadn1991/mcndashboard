@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { refreshToken } from './api/authent';
+import { refreshToken, removeToken } from './api/authent';
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -53,10 +53,8 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         // Nếu refresh token thất bại, xóa token và chuyển về trang login
-        Cookies.remove('token', { path: '/' });
-        await axiosInstance.post('jwt-auth/v1/logout');
-        delete axiosInstance.defaults.headers.common['Authorization'];
-
+        removeToken();
+        
         // Chuyển hướng về trang login nếu đang ở client side
         if (typeof window !== 'undefined') {
           window.location.href = '/login';

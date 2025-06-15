@@ -52,10 +52,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutUser();
       dispatch(clearUser());
+      // Đảm bảo clear user state trước khi redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      throw error;
+      // Ngay cả khi có lỗi, vẫn clear user state và redirect
+      dispatch(clearUser());
+      router.push('/login');
     }
   };
 

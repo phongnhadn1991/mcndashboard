@@ -44,19 +44,52 @@ export const loginUser = async (user: User) => {
 };
 
 export const logoutUser = async () => {
+  try {
+    // Gọi API logout
     await axiosInstance.post('jwt-auth/v1/logout');
+    
+    // Xóa token
     removeToken();
+    
+    // Clear tất cả cookies liên quan đến auth
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf('=');
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+    }
+    
     return { success: true };
+  } catch (error) {
+    // Ngay cả khi API call thất bại, vẫn xóa token
+    removeToken();
+    throw error;
+  }
 };
 
 export const removeToken = () => {
+  // Xóa token với tất cả các options có thể
   Cookies.remove('token', { 
     path: '/',
     domain: window.location.hostname,
     sameSite: 'lax'
   });
+  
+  // Xóa token với domain mặc định
+  Cookies.remove('token');
+  
+  // Xóa token với domain root
+  Cookies.remove('token', { domain: '.' + window.location.hostname });
+  
   // Xóa header Authorization
   delete axiosInstance.defaults.headers.common['Authorization'];
+  
+  // Clear localStorage nếu có
+  localStorage.removeItem('token');
+  
+  // Clear sessionStorage nếu có
+  sessionStorage.removeItem('token');
 }
 
 export const refreshToken = async () => {
