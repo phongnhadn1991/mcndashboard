@@ -185,3 +185,62 @@ function handle_logout() {
     ), 200);
 }
 ```
+
+CONFIG SERVER NGHIX (Site next)
+/etc/nginx/conf.d/dashboard.ngoan.site.conf
+Chú ý dòng này: proxy_pass http://localhost:3000;
+
+```Terminal
+server {
+    listen 80;
+    include /etc/nginx/extra/https.conf;
+    listen [::]:80;
+    server_name dashboard.ngoan.site www.dashboard.ngoan.site;
+
+    #access_log off;
+    #access_log /home/dashboaSWUM/dashboard.ngoan.site/logs/access.log;
+    #error_log off;
+    #error_log /home/dashboaSWUM/dashboard.ngoan.site/logs/error.log;
+    #root /home/dashboaSWUM/dashboard.ngoan.site/public_html;
+    #index index.php index.html index.htm;
+    location / {
+        proxy_buffering off;
+        proxy_pass http://localhost:3000;
+        proxy_set_header X-Client-IP      $remote_addr;
+        proxy_set_header Host             $host;
+        proxy_set_header X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_hide_header Upgrade;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    ssl_certificate_key /etc/nginx/ssl/dashboard.ngoan.site/key.pem;
+    ssl_certificate /etc/nginx/ssl/dashboard.ngoan.site/cert.pem;
+    listen [::]:443 ssl http2;
+    server_name dashboard.ngoan.site www.dashboard.ngoan.site;
+    #access_log off;
+    #access_log /home/dashboaSWUM/dashboard.ngoan.site/logs/access.log;
+    #error_log off;
+    error_log /home/dashboaSWUM/dashboard.ngoan.site/logs/error.log;
+    #root /home/dashboaSWUM/dashboard.ngoan.site/public_html;
+    #index index.php index.html index.htm;
+
+    location / {
+        proxy_buffering off;
+        proxy_pass http://localhost:3000;
+        proxy_set_header X-Client-IP      $remote_addr;
+        proxy_set_header Host             $host;
+        proxy_set_header X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_hide_header Upgrade;
+    }
+}
+```
+
+CONFIG SERVER NGHIX (Site Api wp)
+/etc/nginx/conf.d/api-dashboard.ngoan.site.conf
+Comment dòng này lại include /etc/nginx/wordpress/disable_user_api.conf (để không bị lỗi cors khi call login user)
+
+```Terminal
+#include /etc/nginx/wordpress/disable_user_api.conf;
+```
