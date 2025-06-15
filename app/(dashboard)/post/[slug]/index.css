@@ -1,6 +1,8 @@
 
+
+
 .c-article_post {
-  color: #222;
+  color: var(--text-foreground);
 }
 
 .c-article_post h1,
@@ -9,7 +11,7 @@
 .c-article_post h4,
 .c-article_post h5,
 .c-article_post h6 {
-  color: #222;
+  color: var(--text-foreground);
 }
 
 article.post-content cite,
@@ -127,7 +129,7 @@ article.post-content blockquote:before,
 article.post-content blockquote:after,
 article.post-content q:before,
 article.post-content q:after {
-  color: #222;
+  color: var(--text-foreground);
   content: '';
   content: none;
 }
@@ -338,14 +340,14 @@ article.post-content div {
 
 article.post-content .wp-block-image figcaption {
   margin: 3px 0 0;
-  color: #a0a0a0;
+  color: var(--muted-foreground);
   font-size: 12px;
   text-align: center;
 }
 
 article.post-content .wp-caption .wp-caption-text {
   margin: 3px 0 0;
-  color: #a0a0a0;
+  color: var(--muted-foreground);
   font-size: 12px;
   text-align: center;
 }
@@ -400,7 +402,7 @@ article.post-content ul {
 article.post-content li {
   margin-bottom: 0.5em;
   padding-left: 1.25rem;
-  color: #222;
+  color: var(--text-foreground);
   text-indent: -1.375rem;
 }
 
@@ -439,7 +441,7 @@ article.post-content img {
 
 article.post-content figcaption {
   margin: 3px 0 1em;
-  color: #a0a0a0;
+  color: var(--muted-foreground);
   font-size: 11px;
 }
 
@@ -479,7 +481,7 @@ article.post-content h3,
 article.post-content h4,
 article.post-content h5,
 article.post-content h6 {
-  color: #222;
+  color: var(--text-foreground);
   text-rendering: optimizeLegibility;
 }
 
@@ -571,7 +573,7 @@ article.post-content hr {
 article.post-content mark {
   padding: 0 0.4em;
   background: #efca56;
-  color: #222;
+  color: var(--text-foreground);
 }
 
 article.post-content p,
