@@ -14,6 +14,7 @@ export type Posts = {
     large: string;
     full: string;
   };
+  content: string;
   date: string;
   author: string,
   categories: Category[];

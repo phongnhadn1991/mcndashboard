@@ -42,6 +42,20 @@ export const getPostById = async (id: string): Promise<Posts> => {
   }
 };
 
+export const getPostBySlug = async (slug: string): Promise<Posts> => {
+  try {
+    const response = await axiosInstance.get(`ngoanmc/v1/post-detail`, {
+      params: {
+        slug: slug
+      }
+    });
+    return response.data.data[0];
+  } catch (error) {
+    console.error(`Error fetching post with slug ${slug}:`, error);
+    throw error;
+  }
+};
+
 export const getPostsByCategory = async (categoryId: number): Promise<Posts[]> => {
   try {
     const response = await axiosInstance.get(`/posts?category=${categoryId}`);
