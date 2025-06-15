@@ -38,8 +38,17 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Nếu là lỗi 401 và chưa thử refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Chỉ refresh token khi:
+    // 1. Lỗi 401
+    // 2. Chưa thử refresh token
+    // 3. Không phải là request login
+    // 4. Có token trong cookie
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry && 
+      !originalRequest.url?.includes('jwt-auth/v1/token') &&
+      Cookies.get('token')
+    ) {
       originalRequest._retry = true;
 
       try {
